@@ -73,7 +73,10 @@ object DataWarehouse {
     *  Hint2: consider using method `orderBy`
     */
   def bidsPerExchange(df: DataFrame): DataFrame = {
-    ???
+    df.groupBy($"exchange")
+      .agg(
+        sum("bids").as("bids")
+      ).orderBy($"bids".desc)
   }
 
   /** Returns the number of bids per each exchange (in total),
@@ -84,7 +87,20 @@ object DataWarehouse {
     *  Hint3: Use `spark.sql` to execute query
     */
   def bidsPerExchangeSql(df: DataFrame): DataFrame = {
-    ???
+    val tableName = s"bids_table"
+    df.createOrReplaceTempView(tableName)
+    spark.sql(bidsPerExchangeSqlQuery(tableName))
+  }
+
+  def bidsPerExchangeSqlQuery(tableName: String): _root_.scala.Predef.String = {
+    s"""
+      SELECT
+        exchange,
+        SUM(bids) AS sum_bids
+      FROM $tableName
+      GROUP BY exchange
+      ORDER BY sum_bids DESC
+    """
   }
 
   /** Returns sum of all measures grouped per `dimensionColumns` dimensions and per day
@@ -95,7 +111,11 @@ object DataWarehouse {
   def measuresGroupedByDimensions(df: DataFrame): DataFrame = {
     val (dateDim, dimensionColumns, measureColumns) = dimensionMeasureColumns()
 
-    ???
+    val aggCols = col(dateDim) :: dimensionColumns.map(col(_))
+
+    df.withColumn(dateDim, date_format(df(dateDim), "yyyy-MM-dd"))
+      .groupBy(aggCols:_*)
+      .agg(measureColumns)
   }
 
   /**
@@ -104,7 +124,22 @@ object DataWarehouse {
     * Hint: use the `map` method of DataFrame and convert row into BidData
     */
   def bidDataTyped(df: DataFrame): Dataset[BidData] =
-    ???
+    df.map(
+      row => BidData(
+        row.getAs[Timestamp]("dateTime"),
+        row.getAs[String]("exchange"),
+        row.getAs[String]("trader"),
+        row.getAs[Long]("traderId"),
+        row.getAs[String]("domain"),
+        row.getAs[String]("country"),
+        row.getAs[String]("device"),
+        row.getAs[Long]("requests"),
+        row.getAs[Long]("bids"),
+        row.getAs[Long]("timeouts"),
+        row.getAs[Double]("revenue"),
+        row.getAs[Double]("avg_time")
+      )
+    )
 
   /** Returns sum of all measures grouped per all dimensions (per hour) as a dataset.
     *
@@ -112,7 +147,12 @@ object DataWarehouse {
     *  Hint2: After ordering map the results back into the Dataset[BidData] using `map`
     */
   def bidsPerExchangeDataset(ds: Dataset[BidData]): Dataset[(String, Double)] = {
-    ???
+    import org.apache.spark.sql.expressions.scalalang.typed
+    ds.groupByKey(_.exchange)
+      .agg(
+        typed.sum[BidData](_.bids).as[Double]
+      )
+      .orderBy($"bids".desc)
   }
 
   def main(args: Array[String]) {
