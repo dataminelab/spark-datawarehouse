@@ -91,6 +91,17 @@ class DataWarehouseTestSuite extends FunSuite with BeforeAndAfterAll {
   }
 
   ignore("writeDataToJdbc") {
+    // Use S3 here instead, since we have to do it anyway
+    val path = "s3://radek-training/sample.parquet"
+    sourceData.writeDataToParquet(bidsDf, path)
+
+    val bidsDfParquet = sourceData.readDataFromParquet(dataWarehouse.spark, path)
+
+    assert(bidsDfParquet.count === 100)
+    bidsPerExchangeSql.show()
+  }
+
+  ignore("writeDataToJdbc"){
     sourceData.writeDataToJdbc(measuresGroupedDf, "bids_summarised")
   }
 

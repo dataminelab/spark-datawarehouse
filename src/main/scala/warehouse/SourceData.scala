@@ -80,6 +80,18 @@ object SourceData {
     df.write.mode("overwrite").jdbc(url, table, props)
   }
 
+  def readDataFromParquet(spark: SparkSession, path: String) = {
+    spark.conf.set("spark.sql.parquet.binaryAsString", "true");
+    spark.read
+      .option("mergeSchema", "true")
+      .format("parquet")
+      .load(path)
+  }
+
+  def writeDataToParquet(df: DataFrame, path: String) = {
+    df.write.format("parquet").save(path)
+  }
+
   /** Use a combination of `spark.read.json`, and `resourcePath`
     *
     */
