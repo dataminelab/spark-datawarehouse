@@ -4,7 +4,7 @@ import java.nio.file.Paths
 import java.util.Properties
 
 import org.apache.spark.sql.types._
-import org.apache.spark.sql.{DataFrame, SparkSession}
+import org.apache.spark.sql.{DataFrame, SaveMode, SparkSession}
 import org.apache.spark.sql.functions._
 import warehouse.util.CSVFileStreamGenerator
 
@@ -12,12 +12,24 @@ object SourceData {
 
   // See: https://github.com/databricks/spark-redshift/tree/master/tutorial
   // These should be stored in properties file or passed via args/environment
-  val redshiftJdbcUrl = "jdbc:redshift://swredshift.czac2vcs84ci.us-east-1.redshift.amazonaws.com:5439/sparkredshift?user=spark&password=mysecretpass"
-  val awsAccessKeyId = ""
-  val awsSecretAccessKey = ""
-  val tempS3Dir = "s3n://redshift-spark/temp/"
+  val redshiftJdbcUrl = "jdbc:redshift://test2.cynwbxx4zfzs.us-east-1.redshift.amazonaws.com:5439/test?user=root&password=example123A"
+  val awsAccessKeyId = "AKIAIHV5T4ZYCVNDPE3A"
+  val awsSecretAccessKey = "izlS9MoS2q8fkpKjCem82xL/eZQHV/3rsTLq3bSJ"
+  val tempS3Dir = "s3n://radek-training/tempSpark/"
 
-  private def readDfFromRedshift(spark: SparkSession, table: String) = {
+  def readDfFromRedshiftTable(spark: SparkSession, table: String) = {
+    loadRedshiftData(spark)
+      .option("dbtable", table)
+      .load()
+  }
+
+  def readDfFromRedshiftQuery(spark: SparkSession, query: String) = {
+    loadRedshiftData(spark)
+      .option("query", query)
+      .load()
+  }
+
+  private def loadRedshiftData(spark: SparkSession) = {
     spark.sparkContext.hadoopConfiguration.set("fs.s3n.impl", "org.apache.hadoop.fs.s3native.NativeS3FileSystem")
     spark.sparkContext.hadoopConfiguration.set("fs.s3n.awsAccessKeyId", awsAccessKeyId)
     spark.sparkContext.hadoopConfiguration.set("fs.s3n.awsSecretAccessKey", awsSecretAccessKey)
@@ -26,23 +38,21 @@ object SourceData {
       .format("com.databricks.spark.redshift")
       .option("url", redshiftJdbcUrl)
       .option("tempdir", tempS3Dir)
-      .option("dbtable", table)
       .option("fs.s3n.awsAccessKeyId", awsAccessKeyId)
-      .load()
   }
 
-  private def writeDfToRedshift(df: DataFrame, spark: SparkSession, table: String) = {
+  def writeDfToRedshift(df: DataFrame, spark: SparkSession, table: String,
+                        mode: SaveMode = SaveMode.Overwrite) = {
     spark.sparkContext.hadoopConfiguration.set("fs.s3n.impl", "org.apache.hadoop.fs.s3native.NativeS3FileSystem")
     spark.sparkContext.hadoopConfiguration.set("fs.s3n.awsAccessKeyId", awsAccessKeyId)
     spark.sparkContext.hadoopConfiguration.set("fs.s3n.awsSecretAccessKey", awsSecretAccessKey)
 
-    df.write
-      .format("com.databricks.spark.redshift")
+    df.write.format("com.databricks.spark.redshift")
       .option("url", redshiftJdbcUrl)
       .option("dbtable", table)
-      .option("forward_spark_s3_credentials", true)
+      //.option("forward_spark_s3_credentials", true)
       .option("tempdir", tempS3Dir)
-      .mode("error")
+      .mode(mode)
       .save()
   }
 

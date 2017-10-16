@@ -4,7 +4,7 @@ import org.apache.spark.sql.DataFrame
 import org.scalatest.{BeforeAndAfterAll, FunSuite}
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
-import warehouse.DataWarehouse.dimensionMeasureColumns
+import warehouse.DataWarehouse.{dimensionMeasureColumns}
 import warehouse.util.CSVFileStreamGenerator
 
 @RunWith(classOf[JUnitRunner])
@@ -45,40 +45,40 @@ class DataWarehouseTestSuite extends FunSuite with BeforeAndAfterAll {
     sc.stop()
   }
 
-  test("dataWarehouse") {
+  ignore("dataWarehouse") {
     assert(dataWarehouse.spark.sparkContext.appName === "DataWarehouse")
     assert(dataWarehouse.spark.sparkContext.isStopped === false)
   }
 
-  test("read") {
+  ignore("read") {
     assert(bidsDf.count === 100)
     bidsDf.show()
   }
 
-  test("readXml") {
+  ignore("readXml") {
     assert(bidsDfXml.count === 100)
     bidsDfXml.show()
   }
 
-  test("bidsPerExchange") {
+  ignore("bidsPerExchange") {
     assert(bidsPerExchange.columns.length === 2)
     assert(bidsPerExchange.count === 5)
     bidsPerExchange.show()
   }
 
-  test("bidsPerExchangeSql") {
+  ignore("bidsPerExchangeSql") {
     assert(bidsPerExchangeSql.columns.length === 2)
     assert(bidsPerExchangeSql.count === 5)
     bidsPerExchangeSql.show()
   }
 
-  test("measuresGroupedByDimensions") {
+  ignore("measuresGroupedByDimensions") {
     assert(measuresGroupedDf.columns.length === 8)
     assert(measuresGroupedDf.count === 28)
     //measuresGroupedDf.show()
   }
 
-  test("timeUsageSummaryTyped"){
+  ignore("timeUsageSummaryTyped") {
     assert(bidsDs.head.getClass.getName === "warehouse.BidData")
     assert(bidsDs.count === 100)
     bidsDs.show()
@@ -88,4 +88,25 @@ class DataWarehouseTestSuite extends FunSuite with BeforeAndAfterAll {
     sourceData.writeDataToJdbc(measuresGroupedDf, "bids_summarised")
   }
 
+  test("readWriteRedshift") {
+
+    val query =
+      s"""
+      select sum(lo_revenue), d_year, p_brand1
+         from lineorder, dwdate, part, supplier
+         where lo_orderdate = d_datekey
+         and lo_partkey = p_partkey
+         and lo_suppkey = s_suppkey
+         and p_category = 'MFGR#12'
+         and s_region = 'AMERICA'
+         group by d_year, p_brand1
+         order by d_year, p_brand1
+         limit 1000
+    """
+    val df1 = sourceData.readDfFromRedshiftQuery(dataWarehouse.spark, query)
+    df1.createOrReplaceTempView("dwdate_redshift")
+
+    // write results into the new table
+    sourceData.writeDfToRedshift(df1, dataWarehouse.spark, "brand_revenue")
+  }
 }
