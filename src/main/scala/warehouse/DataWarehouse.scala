@@ -112,10 +112,12 @@ object DataWarehouse {
     val (dateDim, dimensionColumns, measureColumns) = dimensionMeasureColumns()
 
     val aggCols = col(dateDim) :: dimensionColumns.map(col(_))
+    val allColNames = List(dateDim) ++ dimensionColumns ++ measureColumns.keys.toList
 
     df.withColumn(dateDim, date_format(df(dateDim), "yyyy-MM-dd"))
       .groupBy(aggCols:_*)
       .agg(measureColumns)
+      .toDF(allColNames:_*)
   }
 
   /**
