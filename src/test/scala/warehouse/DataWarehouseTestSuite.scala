@@ -84,11 +84,17 @@ class DataWarehouseTestSuite extends FunSuite with BeforeAndAfterAll {
     bidsDs.show()
   }
 
-  ignore("writeDataToJdbc"){
+  ignore("writeDataToJdbc") {
     sourceData.writeDataToJdbc(measuresGroupedDf, "bids_summarised")
   }
 
-  test("readWriteRedshift") {
+  ignore("writeDataToParquet") {
+    measuresGroupedDf.show()
+    sourceData.
+      writeDataToParquet(measuresGroupedDf, "/tmp/sample.parquet")
+  }
+
+  ignore("readWriteRedshift") {
 
     val query =
       s"""

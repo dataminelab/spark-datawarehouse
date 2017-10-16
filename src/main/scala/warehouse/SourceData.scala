@@ -17,6 +17,18 @@ object SourceData {
   val awsSecretAccessKey = ""
   val tempS3Dir = "s3n://radek-training/tempSpark/"
 
+  def readDataFromParquet(spark: SparkSession, path: String) = {
+    spark.conf.set("spark.sql.parquet.binaryAsString", "true");
+    spark.read
+      .option("mergeSchema", "true")
+      .format("parquet")
+      .load(path)
+  }
+
+  def writeDataToParquet(df: DataFrame, path: String) = {
+    df.write.format("parquet").save(path)
+  }
+
   def readDfFromRedshiftTable(spark: SparkSession, table: String) = {
     loadRedshiftData(spark)
       .option("dbtable", table)
