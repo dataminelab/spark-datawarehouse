@@ -12,9 +12,9 @@ object SourceData {
 
   // See: https://github.com/databricks/spark-redshift/tree/master/tutorial
   // These should be stored in properties file or passed via args/environment
-  val redshiftJdbcUrl = "jdbc:redshift://test2.cynwbxx4zfzs.us-east-1.redshift.amazonaws.com:5439/test?user=root&password=example123A"
-  val awsAccessKeyId = "AKIAIHV5T4ZYCVNDPE3A"
-  val awsSecretAccessKey = "izlS9MoS2q8fkpKjCem82xL/eZQHV/3rsTLq3bSJ"
+  val redshiftJdbcUrl = "jdbc:redshift://<replace-with-host>:5439/test?user=<username>&password=<password>"
+  val awsAccessKeyId = ""
+  val awsSecretAccessKey = ""
   val tempS3Dir = "s3n://radek-training/tempSpark/"
 
   def readDfFromRedshiftTable(spark: SparkSession, table: String) = {
