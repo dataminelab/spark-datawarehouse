@@ -61,15 +61,21 @@ class DataWarehouseTestSuite extends FunSuite with BeforeAndAfterAll {
   }
 
   ignore("bidsPerExchange") {
+    bidsPerExchange.show()
     assert(bidsPerExchange.columns.length === 2)
     assert(bidsPerExchange.count === 5)
-    bidsPerExchange.show()
+  }
+
+  ignore("bidsPerExchangeDataset") {
+    val bidsDsPerExchange = dataWarehouse.bidsPerExchangeDataset(bidsDs)
+    assert(bidsDsPerExchange.columns.length === 2)
+    assert(bidsDsPerExchange.count === 5)
   }
 
   ignore("bidsPerExchangeSql") {
     assert(bidsPerExchangeSql.columns.length === 2)
     assert(bidsPerExchangeSql.count === 5)
-    bidsPerExchangeSql.show()
+    //bidsPerExchangeSql.show()
   }
 
   ignore("measuresGroupedByDimensions") {
