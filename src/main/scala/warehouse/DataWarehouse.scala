@@ -111,7 +111,7 @@ object DataWarehouse {
     *  Hint1: Use `typed.sum` and `as` to provide the type hint
     *  Hint2: After ordering map the results back into the Dataset[BidData] using `map`
     */
-  def bidsPerExchangeDataset(ds: Dataset[BidData]): Dataset[BidData] = {
+  def bidsPerExchangeDataset(ds: Dataset[BidData]): Dataset[(String, Double)] = {
     ???
   }
 
