@@ -4,7 +4,7 @@ import java.nio.file.Paths
 import java.util.Properties
 
 import org.apache.spark.sql.types._
-import org.apache.spark.sql.{DataFrame, SaveMode, SparkSession}
+import org.apache.spark.sql.{DataFrame, SaveMode, SparkSession, Encoders}
 import org.apache.spark.sql.functions._
 import warehouse.util.CSVFileStreamGenerator
 
@@ -130,17 +130,12 @@ object SourceData {
     */
   def readBidsDataStreaming(spark: SparkSession, stream: CSVFileStreamGenerator): DataFrame = {
 
-    val recordSchema = StructType(
-      Seq(
-        StructField("key", StringType),
-        StructField("value", IntegerType)
-      )
-    )
+    val bidDataSchema = Encoders.product[BidData].schema
 
     spark
       .readStream
       .option("sep", ",")
-      .schema(recordSchema)
+      .schema(bidDataSchema)
       .format("csv")
       .load(stream.dest.getAbsolutePath)
   }

@@ -11,7 +11,7 @@ object StructuredStreaming {
     val stream = new CSVFileStreamGenerator(10, 5, 500)
     val dfStream = dataWarehouse.readDataStream(stream)
 
-    val dfGrouped = dfStream.groupBy("key").count()
+    val dfGrouped = dfStream.groupBy("exchange").count()
 
     val query = dfGrouped.writeStream
       .outputMode("complete") // only allowed when aggregating

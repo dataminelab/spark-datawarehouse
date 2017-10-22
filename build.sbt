@@ -29,5 +29,11 @@ dependencyOverrides += "com.databricks" % "spark-avro_2.11" % "3.2.0"
 libraryDependencies += "mysql" % "mysql-connector-java" % "5.1.44"
 
 libraryDependencies += "junit" % "junit" % "4.10" % "test"
+libraryDependencies += "com.github.alexarchambault" %% "scalacheck-shapeless_1.13" % "1.1.6"
 
+libraryDependencies += "com.fortysevendeg" % "scalacheck-datetime_2.11" % "0.2.0"
+// https://mvnrepository.com/artifact/com.danielasfregola/random-data-generator_2.11
+libraryDependencies += "com.danielasfregola" % "random-data-generator_2.11" % "2.1"
+
+libraryDependencies += "com.github.nscala-time" %% "nscala-time" % "1.8.0"
 
